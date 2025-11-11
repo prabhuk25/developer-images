@@ -28,146 +28,138 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runners: ['ubuntu-22.04', 'ubuntu-22.04-arm']
+        runners: ['ubuntu-22.04']
+        arch: ['amd64', 'arm64', 'ppc64le']
     runs-on: ${{matrix.runners}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set arch environment variable
-        run: |
-          if [[ ${{matrix.runners}} == 'ubuntu-22.04' ]]; then
-            echo arch="amd64" >> $GITHUB_ENV
-          else
-            echo arch="arm64" >> $GITHUB_ENV
-          fi
+        run:  echo "arch=${{matrix.arch}}" >> $GITHUB_ENV
       - name: Set short_sha environment variable
         run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
       - name: Free runner space
         run: sudo rm -rf /usr/local/lib/android
       - name: Cleanup docker images
         run: docker system prune -af
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+      # - name: Login to Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ${{ env.REGISTRY }}
+      #     username: ${{ secrets.QUAY_USERNAME }}
+      #     password: ${{ secrets.QUAY_PASSWORD }}
       - name: Build base image
         run: |
           cd base/ubi9 && docker buildx build \
-          --platform linux/${{env.arch}} \
+          --platform linux/ppc64le, linux/amd64, linux/arm64 \
           --progress=plain \
           --push \
           -t ${{ env.REGISTRY }}/base-developer-image:${{env.arch}}-${{env.short_sha}} .
 
-  publish-base-image:
-    name: Publish base image
-    runs-on: ubuntu-22.04
-    needs: build-base-image
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set short_sha environment variable
-        run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
-      - name: publish
-        run: |
-          for tag in latest ubi9-latest ubi9-${{env.short_sha}};
-          do
-            docker manifest create ${{ env.REGISTRY }}/base-developer-image:${tag} \
-              --amend ${{ env.REGISTRY }}/base-developer-image:amd64-${{env.short_sha}} \
-              --amend ${{ env.REGISTRY }}/base-developer-image:arm64-${{env.short_sha}}
+  # publish-base-image:
+  #   name: Publish base image
+  #   runs-on: ubuntu-22.04
+  #   needs: build-base-image
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Set short_sha environment variable
+  #       run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
+  #     - name: Login to Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ secrets.QUAY_USERNAME }}
+  #         password: ${{ secrets.QUAY_PASSWORD }}
+  #     - name: publish
+  #       run: |
+  #         for tag in latest ubi9-latest ubi9-${{env.short_sha}};
+  #         do
+  #           docker manifest create ${{ env.REGISTRY }}/base-developer-image:${tag} \
+  #             --amend ${{ env.REGISTRY }}/base-developer-image:amd64-${{env.short_sha}} \
+  #             --amend ${{ env.REGISTRY }}/base-developer-image:arm64-${{env.short_sha}}
           
-            docker manifest annotate ${{ env.REGISTRY }}/base-developer-image:${tag} \
-              ${{ env.REGISTRY }}/base-developer-image:amd64-${{env.short_sha}} \
-              --os linux --arch amd64
+  #           docker manifest annotate ${{ env.REGISTRY }}/base-developer-image:${tag} \
+  #             ${{ env.REGISTRY }}/base-developer-image:amd64-${{env.short_sha}} \
+  #             --os linux --arch amd64
           
-            docker manifest annotate ${{ env.REGISTRY }}/base-developer-image:${tag} \
-               ${{ env.REGISTRY }}/base-developer-image:arm64-${{env.short_sha}} \
-              --os linux --arch arm64
+  #           docker manifest annotate ${{ env.REGISTRY }}/base-developer-image:${tag} \
+  #              ${{ env.REGISTRY }}/base-developer-image:arm64-${{env.short_sha}} \
+  #             --os linux --arch arm64
           
-            docker manifest push ${{ env.REGISTRY }}/base-developer-image:${tag}
-          done
+  #           docker manifest push ${{ env.REGISTRY }}/base-developer-image:${tag}
+  #         done
 
-  build-udi:
-    name: Build udi
-    strategy:
-      fail-fast: false
-      matrix:
-        runners: ['ubuntu-22.04', 'ubuntu-22.04-arm']
-    runs-on: ${{matrix.runners}}
-    needs: publish-base-image
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set arch environment variable
-        run: |
-          if [[ ${{matrix.runners}} == 'ubuntu-22.04' ]]; then
-            echo arch="amd64" >> $GITHUB_ENV
-          else
-            echo arch="arm64" >> $GITHUB_ENV
-          fi
-      - name: Set short_sha environment variable
-        run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
-      - name: Free runner space
-        run: sudo rm -rf /usr/local/lib/android
-      - name: Cleanup docker images
-        run: docker system prune -af
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
-      - name: Build udi
-        run: |
-          cd universal/ubi9 && docker buildx build \
-            --platform linux/${{env.arch}} \
-            --progress=plain \
-            --push \
-            -t ${{ env.REGISTRY }}/universal-developer-image:${{env.arch}}-${{env.short_sha}} .
+  # build-udi:
+  #   name: Build udi
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       runners: ['ubuntu-22.04']
+  #       arch: ['amd64', 'arm64', 'ppc64le']
+  #   runs-on: ${{matrix.runners}}
+  #   needs: publish-base-image
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Set arch environment variable
+  #       run:  echo "arch=${{matrix.arch}}" >> $GITHUB_ENV
+  #     - name: Set short_sha environment variable
+  #       run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
+  #     - name: Free runner space
+  #       run: sudo rm -rf /usr/local/lib/android
+  #     - name: Cleanup docker images
+  #       run: docker system prune -af
+  #     - name: Login to Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ secrets.QUAY_USERNAME }}
+  #         password: ${{ secrets.QUAY_PASSWORD }}
+  #     - name: Build udi
+  #       run: |
+  #         cd universal/ubi9 && docker buildx build \
+  #           --platform linux/ppc64le, linux/amd64, linux/arm64 \
+  #           --progress=plain \
+  #           --push \
+  #           -t ${{ env.REGISTRY }}/universal-developer-image:${{env.arch}}-${{env.short_sha}} .
 
-  publish-udi:
-    name: Publish udi
-    runs-on: ubuntu-22.04
-    needs: build-udi
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set short_sha environment variable
-        run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
-      - name: publish
-        run: |
-          for tag in latest ubi9-latest ubi9-${{env.short_sha}};
-          do
-            docker manifest create ${{ env.REGISTRY }}/universal-developer-image:${tag} \
-              --amend ${{ env.REGISTRY }}/universal-developer-image:amd64-${{env.short_sha}} \
-              --amend ${{ env.REGISTRY }}/universal-developer-image:arm64-${{env.short_sha}}
+  # publish-udi:
+  #   name: Publish udi
+  #   runs-on: ubuntu-22.04
+  #   needs: build-udi
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Set short_sha environment variable
+  #       run: echo short_sha="$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
+  #     - name: Login to Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ secrets.QUAY_USERNAME }}
+  #         password: ${{ secrets.QUAY_PASSWORD }}
+  #     - name: publish
+  #       run: |
+  #         for tag in latest ubi9-latest ubi9-${{env.short_sha}};
+  #         do
+  #           docker manifest create ${{ env.REGISTRY }}/universal-developer-image:${tag} \
+  #             --amend ${{ env.REGISTRY }}/universal-developer-image:amd64-${{env.short_sha}} \
+  #             --amend ${{ env.REGISTRY }}/universal-developer-image:arm64-${{env.short_sha}}
           
-            docker manifest annotate ${{ env.REGISTRY }}/universal-developer-image:${tag} \
-              ${{ env.REGISTRY }}/universal-developer-image:amd64-${{env.short_sha}} \
-              --os linux --arch amd64
+  #           docker manifest annotate ${{ env.REGISTRY }}/universal-developer-image:${tag} \
+  #             ${{ env.REGISTRY }}/universal-developer-image:amd64-${{env.short_sha}} \
+  #             --os linux --arch amd64
           
-            docker manifest annotate ${{ env.REGISTRY }}/universal-developer-image:${tag} \
-               ${{ env.REGISTRY }}/universal-developer-image:arm64-${{env.short_sha}} \
-              --os linux --arch arm64
+  #           docker manifest annotate ${{ env.REGISTRY }}/universal-developer-image:${tag} \
+  #              ${{ env.REGISTRY }}/universal-developer-image:arm64-${{env.short_sha}} \
+  #             --os linux --arch arm64
           
-            docker manifest push ${{ env.REGISTRY }}/universal-developer-image:${tag}
-          done  
-      - name: Get tag with uniq prefix
-        id: setTagName
-        # set the image with uniq tag prefix (for example: quay.io/..../base-developer-image:ubi9-7ad6cab) to env. var
-        # and define it for output. This output with tag image will be used in caller job
-        run: |
-          echo "uniq_tag=${{ env.REGISTRY }}/universal-developer-image:ubi9-${{env.short_sha}}" >> $GITHUB_OUTPUT
+  #           docker manifest push ${{ env.REGISTRY }}/universal-developer-image:${tag}
+  #         done  
+  #     - name: Get tag with uniq prefix
+  #       id: setTagName
+  #       # set the image with uniq tag prefix (for example: quay.io/..../base-developer-image:ubi9-7ad6cab) to env. var
+  #       # and define it for output. This output with tag image will be used in caller job
+  #       run: |
+  #         echo "uniq_tag=${{ env.REGISTRY }}/universal-developer-image:ubi9-${{env.short_sha}}" >> $GITHUB_OUTPUT
