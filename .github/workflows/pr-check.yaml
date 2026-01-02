@@ -44,8 +44,11 @@ jobs:
         run: sudo rm -rf /usr/local/lib/android
       - name: Cleanup docker images
         run: docker system prune -af
+<<<<<<< HEAD
       - name: Add expiration label to base Dockerfile (UBI9)
         run: sed -i '/^FROM/a LABEL quay.expires-after=4w' base/ubi9/Dockerfile
+=======
+>>>>>>> eb8139b (Added QEMU setup in pr-check workflow)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -53,6 +56,7 @@ jobs:
         with:
           driver: docker-container
           platforms: linux/amd64,linux/arm64,linux/ppc64le
+<<<<<<< HEAD
       - name: Login to Registry
         uses: docker/login-action@v3
         with:
@@ -60,6 +64,9 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
       - name: Build base image (UBI9)
+=======
+      - name: Build base image
+>>>>>>> eb8139b (Added QEMU setup in pr-check workflow)
         run: |
             echo "=========================================="
             echo "Building UBI9 base image for ${{env.arch}}"
@@ -117,6 +124,14 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+<<<<<<< HEAD
+=======
+        with:
+          driver: docker-container
+          platforms: linux/amd64,linux/arm64,linux/ppc64le
+      - name: Download BDI artifacts
+        uses: actions/download-artifact@v4
+>>>>>>> eb8139b (Added QEMU setup in pr-check workflow)
         with:
           driver: docker-container
           platforms: linux/amd64,linux/arm64,linux/ppc64le
