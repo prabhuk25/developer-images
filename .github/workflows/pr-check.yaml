@@ -251,7 +251,7 @@ jobs:
 
           echo "AMD64 digest: $AMD64_DIGEST"
           echo "ARM64 digest: $ARM64_DIGEST"
-          echo "ARM64 digest: $PPC64LE_DIGEST"
+          echo "PPC64LE digest: $PPC64LE_DIGEST"
 
           echo "Creating multi-arch manifest..."
           docker manifest create ${{ env.REGISTRY }}/universal-developer-image:pr-${{github.event.number}} \
