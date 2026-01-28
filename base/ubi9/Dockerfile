@@ -37,10 +37,10 @@ RUN dnf -y reinstall shadow-utils && \
     dnf clean all
 
 # Download and install gh-cli depending on the architecture.
-# See release page for details https://github.com/cli/cli/releases/tag/v2.78.0
+# See release page for details https://github.com/cli/cli/releases/tag/v2.83.2
 RUN \
     TEMP_DIR="$(mktemp -d)" && cd "${TEMP_DIR}" && \
-    GH_VERSION="2.78.0" && \
+    GH_VERSION="2.83.2" && \
     case "$TARGETARCH" in \
         amd64) GH_ARCH="linux_amd64" ;; \
         arm64) GH_ARCH="linux_arm64" ;; \
@@ -64,7 +64,7 @@ RUN \
     cd - && rm -rf "${TEMP_DIR}"
 
 # Download and install ripgrep depending on the architecture.
-# See release page for details https://github.com/BurntSushi/ripgrep/releases/tag/13.0.0
+# See release page for details https://github.com/BurntSushi/ripgrep/releases/tag/15.1.0
 RUN set -e; \
     case "$TARGETARCH" in \
         ppc64le) \
@@ -80,7 +80,7 @@ RUN set -e; \
     esac; \
     TEMP_DIR="$(mktemp -d)"; \
     cd "${TEMP_DIR}"; \
-    RG_VERSION="13.0.0"; \
+    RG_VERSION="15.1.0"; \
     RG_TGZ="ripgrep-${RG_VERSION}-${RG_ARCH}.tar.gz"; \
     RG_TGZ_URL="https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/${RG_TGZ}"; \
     echo "Downloading ${RG_TGZ_URL} ..."; \
@@ -100,7 +100,7 @@ RUN set -e; \
     rm -rf "${TEMP_DIR}"
 
 # Download and install bat depending on the architecture.
-# See release page for details https://github.com/sharkdp/bat/releases/tag/v0.18.3
+# See release page for details https://github.com/sharkdp/bat/releases/tag/v0.26.0
 RUN set -e; \
     case "$TARGETARCH" in \
         ppc64le) \
@@ -116,7 +116,7 @@ RUN set -e; \
     esac; \
     TEMP_DIR="$(mktemp -d)"; \
     cd "${TEMP_DIR}"; \
-    BAT_VERSION="0.18.3"; \
+    BAT_VERSION="v0.26.0"; \
     BAT_TGZ="bat-v${BAT_VERSION}-${BAT_ARCH}.tar.gz"; \
     BAT_TGZ_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/${BAT_TGZ}"; \
     echo "Downloading ${BAT_TGZ_URL} ..."; \
@@ -136,7 +136,7 @@ RUN set -e; \
     rm -rf "${TEMP_DIR}"
 
 # Download and install fd depending on the architecture.
-# See release page for details https://github.com/sharkdp/fd/releases/tag/v8.7.0
+# See release page for details https://github.com/sharkdp/fd/releases/tag/v10.3.0
 RUN set -e; \
     case "$TARGETARCH" in \
         ppc64le) \
@@ -152,7 +152,7 @@ RUN set -e; \
     esac; \
     TEMP_DIR="$(mktemp -d)"; \
     cd "${TEMP_DIR}"; \
-    FD_VERSION="8.7.0"; \
+    FD_VERSION="10.3.0"; \
     FD_TGZ="fd-v${FD_VERSION}-${FD_ARCH}.tar.gz"; \
     FD_TGZ_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/${FD_TGZ}"; \
     echo "Downloading ${FD_TGZ_URL} ..."; \
@@ -192,8 +192,8 @@ RUN mkdir -p /var/lib/shared/overlay-images /var/lib/shared/overlay-layers; \
     touch /var/lib/shared/overlay-layers/layers.lock
 
 # Add kubedock
-# See release page for details https://github.com/joyrex2001/kubedock/releases/tag/0.18.2
-ENV KUBEDOCK_VERSION=0.18.2
+# See release page for details https://github.com/joyrex2001/kubedock/releases/tag/0.19.0
+ENV KUBEDOCK_VERSION=0.19.0
 ENV KUBECONFIG=/home/user/.kube/config
 RUN set -e; \
     case "$TARGETARCH" in \
